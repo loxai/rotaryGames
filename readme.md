@@ -6,3 +6,5 @@ I realised the exposed gpio fits a rotary encoder nicely (best to desolder the e
 I have no experience in C/C++, the code is a bit messy and inelegant... I just wanted to make some simple games :p
 
 Graphics taken from quick online searches, hopefully all royalty free/not copyrighted.
+
+Using LovyanGFX library: [@lovyan03](https://github.com/lovyan03/LovyanGFX)
