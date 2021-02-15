@@ -103,8 +103,15 @@ void menuLoop(){
     selectedIndex = 0;
   if (selectedIndex >= NUM_GAMES)
     selectedIndex = NUM_GAMES - 1;
-    
-  if (selectedIndex != prevSelectedIndex){// && millis() - timeCount > 64){
+
+  bool change = selectedIndex != prevSelectedIndex;
+  if (Utils::releaseB()){
+    Utils::inputMode++;
+    if (Utils::inputMode > 2)
+      Utils::inputMode = 0;
+    change = true;    
+  }  
+  if (change){// && millis() - timeCount > 64){
     lcd.fillScreen(0x112233U);
     for(int i = 0; i < NUM_GAMES; i++){
         lcd.setCursor(0, MENU_VERTICAL_SEPARATION * i);
@@ -118,8 +125,24 @@ void menuLoop(){
     prevSelectedIndex = selectedIndex;
 
     timeCount = millis();
+
+    lcd.setCursor(0, WIDTH * 0.9);
+    lcd.setFont(&fonts::Font2);
+    lcd.setTextColor(0x00FF00U);
+    switch(Utils::inputMode){
+      case 0:
+        lcd.printf("IN: Rotary");
+      break;
+      case 1:
+        lcd.printf("IN: IMU Ver.");
+      break;
+      case 2:
+        lcd.printf("IN: IMU Hor.");
+      break;
+    }
+
   }
-  if (Utils::pressA() || Utils::pressB()){
+  if (Utils::pressA()){
     gameSelect = selectedIndex + 1;
   }
 }

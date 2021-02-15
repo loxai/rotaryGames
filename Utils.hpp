@@ -4,9 +4,17 @@
 #include "Arduino.h"
 #include <LovyanGFX.hpp>
 
+#define PIN_CLK 0
+#define PIN_DT 36
+#define PIN_SW 26
+#define PIN_A 37
+#define PIN_B 39
+#define PIN_LED 10
+//#define SERIAL
 #define WIDTH 160
 #define HEIGHT 80
 #define SCORE_VERT_SEPARATION HEIGHT * 0.2
+#define IMU_SENSITIVITY 10
 
 class Utils{
 	public:
@@ -27,10 +35,9 @@ class Utils{
     static bool releaseB();
     static bool releaseC();
     static int sign(float s);
-    //static LGFX getLcd();
-    //static LGFX_Sprite getBuffer();
-    //static LGFX_Sprite& getFrameBuffer();
+    static int inputMode;//0=rotary encoder, 1 imu vertical, 2 imu horizontal
 //  private:
+    //static float prevImu;
 //    static bool pressedA;
 //    static bool pressedB;  
 //    static bool pressedC;  

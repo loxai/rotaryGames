@@ -1,14 +1,7 @@
 #include "Utils.hpp"
 #include <esp_task_wdt.h>
 #include "gameOver.bmp.h"
-
-#define PIN_CLK 0
-#define PIN_DT 36
-#define PIN_SW 26
-#define PIN_A 37
-#define PIN_B 39
-#define PIN_LED 10
-//#define SERIAL
+#include <M5StickC.h>
 
 static LGFX_Sprite gameOverSprite;
 //static LGFX_Sprite frameBuffer;
@@ -18,7 +11,11 @@ static float gameOverZoom;
 
 static bool pressedA;
 static bool pressedB;  
-static bool pressedC;  
+static bool pressedC;
+
+static float accumulatedIMU;
+
+int Utils::inputMode = 0;
 
 int Utils::sign(float s){
  if (s < 0) return -1;
@@ -66,20 +63,50 @@ bool Utils::pressC(){
 }
 int Utils::rotaryInput(){
   int rotaryCount = 0;
-  int pinClk = digitalRead(PIN_CLK);
-  int pinDt = digitalRead(PIN_DT);
-
-  //if (pinClk != prevPinClk){
-  //some encoders count twice per step, avoiding the double by only accepting DT = 1
-  if (pinClk != prevPinClk and pinDt == 1){
-    if (pinClk != pinDt)
-      rotaryCount++;
-    else
-      rotaryCount--;
+  switch(Utils::inputMode){
+    case 0:
+    {
+      int pinClk = digitalRead(PIN_CLK);
+      int pinDt = digitalRead(PIN_DT);
+    
+      //if (pinClk != prevPinClk){
+      //some encoders count twice per step, avoiding the double by only accepting DT = 1
+      if (pinClk != prevPinClk and pinDt == 1){
+        if (pinClk != pinDt)
+          rotaryCount++;
+        else
+          rotaryCount--;
+      }
+      prevPinClk = pinClk;
+    }
+    break;
+    case 1:
+    case 2:
+      float pitch;
+      float roll;
+      float yaw;
+      int result = 0;
+      float imu;
+    
+      //M5.IMU.getAhrsData(&pitch,&roll,&yaw);
+      M5.IMU.getGyroData(&pitch,&roll,&yaw);
+      if (Utils::inputMode == 1)
+        imu = roll;
+      else
+        imu = pitch;
+    
+      if (abs(imu) > IMU_SENSITIVITY)
+       accumulatedIMU += Utils::sign(imu);
+    
+      if (abs(accumulatedIMU) > IMU_SENSITIVITY * 5){
+        rotaryCount = Utils::sign(accumulatedIMU);
+        accumulatedIMU = 0;
+      }
+    break;
   }
-  prevPinClk = pinClk;
   return rotaryCount;
 }
+
 void Utils::reboot(){
   esp_task_wdt_init(1, true);
   esp_task_wdt_add(NULL);
@@ -205,6 +232,10 @@ void Utils::init(){
   pinMode(32, ANALOG);
 
   randomSeed(analogRead(32));
+
+  M5.begin();
+  M5.IMU.Init();
+//  inputMode = 1;
 
 //  lcd.init();
 //  lcd.clear();
